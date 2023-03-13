@@ -1,32 +1,37 @@
-const { Telegraf } = require("telegraf");
-require("dotenv").config();
-const bot = new Telegraf(process.env.BOT_TOKEN);
-let message,
-  username,
-  block = "";
-let id,
-  is_bot,
-  language_code = null;
+const { Markup, Scenes, session } = require("telegraf");
+const bot= require("./api/connection/token.connection");
+//command
+require("./api/middleware/command/start");
+//scene
+const vacancyScene = require("./api/scenes/vacancyScene");
+//stage scene
+const stage = new Scenes.Stage([vacancyScene]);
+bot.use(session());
+bot.use(stage.middleware());
+ 
+//trigers
+bot.hears(`Разместить вакансию`, (ctx) => ctx.scene.enter(`vacancyWizard`));
 
-bot.start((ctx) => {
-  message = ctx.message.from;
-  username = message.username;
-  id = message.id;
-  is_bot = message.is_bot;
-  language_code = message.language_code;
 
-  if (is_bot || language_code !== "ru") {
-    block = id;
-    return;
-  }
 
-  ctx.reply(`Добро пожаловать, ${username}`);
-});
 
-bot.on("sticker", (ctx) => ctx.reply(`Добро, ${username}`));
-bot.hears("hi", (ctx) => ctx.reply("Hey there"));
+
+
+
+
+
+
+
+// bot.on("text", (ctx) =>
+//   ctx.reply(
+//     `Выберите раздел, ${username}`,
+//     Markup.keyboard([
+//       [`Разместить вакансию`],
+//       [`Разместить резюме`, `Заказать рекламу`],
+//     ])
+//       .oneTime()
+//       .resize()
+//   )
+// );
+
 bot.launch();
-
-// Enable graceful stop
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
